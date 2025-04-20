@@ -5,3 +5,6 @@ weather.py
 .env
 *.env.local
 config/credentials/
+__pycache__
+*.py[cod]
+*$py.class

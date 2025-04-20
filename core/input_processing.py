@@ -1,3 +1,7 @@
+import re
+
+from config import SAFETY_CONFIG
+
 def preprocess_input(text: str) -> str:
     """输入预处理"""
     text = filter_sensitive_words(text)
