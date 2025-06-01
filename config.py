@@ -52,7 +52,11 @@ MODEL_CONFIG = {
 
 EXTERNAL_TOOLS = {
     "weather_api": {
-        "url": "http://api.openweathermap.org/data/2.5/weather",
-        "key": os.getenv("WEATHER_APPID")  
+        "BASE_URL" :os.getenv("BASE_URL"),
+        "CITY_URL" :os.getenv("CITY_URL"),
+        "key": os.getenv("WEATHER_API_KEY")  ,
+        "COUNTER_KEY": os.getenv("COUNTER_KEY"),
+        "PROVE_KEY" :os.getenv("PROVE_KEY"),
+        "PRIVATE_KEY_PATH" :"private.pem",
     }
 }

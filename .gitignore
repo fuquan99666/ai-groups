@@ -8,3 +8,5 @@ config/credentials/
 __pycache__
 *.py[cod]
 *$py.class
+private.pem
+public.pem

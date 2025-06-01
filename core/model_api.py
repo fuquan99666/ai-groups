@@ -28,13 +28,14 @@ def openai_chat_non_stream(request: ChatRequest):
         "stream": request.stream,  # 根据请求传递stream参数
         "tools": request.tools
     }
-    
-     # 流式模式处理
     if request.stream:
+        response = client.chat.completions.create(**params)
         for chunk in response:
-            yield parse_openai_chunk(chunk)  # 直接解析chunk对象
-    response = client.chat.completions.create(**params)
-    yield format_non_stream_response(response)
+            yield parse_openai_chunk(chunk)
+    else:
+        response = client.chat.completions.create(**params)
+        yield format_non_stream_response(response)
+
 
 # 新增非流式响应适配器
 def format_non_stream_response(response) -> dict:
@@ -44,7 +45,7 @@ def format_non_stream_response(response) -> dict:
     return {
         "content": msg.content,
         "role": msg.role,
-"tool": msg.tool_calls[0] if msg.tool_calls else None
+        "tool": msg.tool_calls[0] if msg.tool_calls else None
     }
 
 # 更新chunk解析方法（兼容对象直接处理）
@@ -60,3 +61,4 @@ def parse_openai_chunk(chunk) -> dict:
         "delta": delta.model_dump(),
         "chunk": chunk.model_dump()  # 原始数据备份
     }
+
