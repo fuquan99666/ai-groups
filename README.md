@@ -52,3 +52,8 @@ def format_non_stream_response(response) -> dict:
 - 构建领域知识库
 - 开发记忆机制
 - MCP
+
+#6.1 Update
+在main分支中，实现了机器人聊天和集成天气api（目前的是实时天气）
+.csv文件没啥用，test.py是查询天气的具体实现，使用的是和风天气api
+现在需要一位同志解决一下流式输出的问题！
