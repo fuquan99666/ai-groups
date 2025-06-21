@@ -49,7 +49,7 @@ def generate_clean_jwt():
 
     return jwt_token
 
-def get_weather(location_name="beijing", adm="北京"):
+def get_weather(location_name="beijing", adm="北京",time='now'):
 
     token = generate_clean_jwt()
 
@@ -74,7 +74,8 @@ def get_weather(location_name="beijing", adm="北京"):
 
     # 第二步：查询天气
     weather_params = {"location": location_id}
-    res2 = requests.get(ex["BASE_URL"], headers=headers, params=weather_params)
+    url=ex["BASE_URL"]+time
+    res2 = requests.get(url, headers=headers, params=weather_params)
     print("📦 天气响应：", res2.text)
 
     if res2.status_code == 200:
@@ -82,9 +83,10 @@ def get_weather(location_name="beijing", adm="北京"):
     else:
         return {"error": res2.text}
 
-def tianqi(adm,location_name):
+def tianqi(adm,location_name,time):
+
     print("📡 正在请求和风天气 API...")
-    result = get_weather(location_name,adm)
+    result = get_weather(location_name,adm,time)
     return result
 
 if __name__ == "__main__":

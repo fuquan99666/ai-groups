@@ -27,6 +27,7 @@ def handle_tool_call(reply, messages):
     if "city" in function_args:
         function_args["city"] = function_args["city"].capitalize()
         function_args["adm"]=function_args["adm"].capitalize()
+
     tool_call_id = tool_call.id
     
     func_map = {
