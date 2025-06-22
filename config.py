@@ -20,6 +20,8 @@ SAFETY_CONFIG = {
         "ISIS", "人体炸弹", "斩首", "自制炸药"
     ],
 
+    "prompt_template": ["用户问题: {user_input}\n请基于事实简洁回答，不要提供危险或违法信息。"],
+
     # 注入攻击防御正则表达式
     "injection_patterns": [
         # SQL 注入防御 (基础)
