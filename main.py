@@ -4,8 +4,9 @@ from core.model_api import openai_chat_non_stream
 from tools.get_weather import tools, get_weather
 from test import tianqi
 import time
+from check import check_output_format as ce
 
-stream=False
+stream=True
 
 # 运行一次 chat 请求
 def run_chat(request: ChatRequest):
@@ -135,10 +136,26 @@ def main():
     
     # 初始上下文（带 system prompt）
     messages = [
-        ChatMessage(role="system", content=(
-            "你是一个助理。如果你知道答案就直接回答；"
-            "如果你无法回答时，再调用工具函数来获取信息。（比如天气情况）"
-        ))
+ChatMessage(
+    role="system",
+    content=(
+        "你是一个智能出行助手。\n"
+        "用户会提出与天气和出行有关的问题。\n"
+        "请根据你当前知道的信息回答；如果你不知道天气，请调用天气查询工具函数再回答。\n\n"
+
+        "当你查到天气数据之后再输出时，请严格遵守以下结构：\n"
+        "- 城市（string）\n"
+        "- 天气（string）\n"
+        "- 温度范围（string，格式如“22°C ~ 30°C”）\n"
+        "- 出行建议（string）\n\n"
+        #"- content(这一项最好包含天气和出行建议做一个整合)\n\n"
+
+        "⚠️ 查到天气数据之后输出时请只输出一个 JSON 对象，不要加任何解释性语言。\n"
+        "⚠️ 不要使用 markdown 格式（如 ```json），直接输出纯 JSON。\n"
+        "⚠️ 所有字段都必须出现，不能缺省。"
+    )
+)
+
     ]
 
     while True:
@@ -167,6 +184,7 @@ def main():
         # 如果调用了工具
         if reply.get("tool"):
             reply = handle_tool_call(reply, messages)
+            ce(reply)
         
 
         # 添加最终回复到消息列表中
