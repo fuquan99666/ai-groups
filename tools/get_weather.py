@@ -21,7 +21,7 @@ tools = [
                     },
                     "location_name": {
                         "type": "string",
-                        "description": "城市名字, 应该为英文并且全部小写，例如：beijing"
+                        "description": "城市名字，例如：beijing"
                     },
                     "time":{
                         "type": "string",
