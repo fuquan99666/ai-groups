@@ -1,15 +1,22 @@
-# config.py
+# 全局配置
 import os
 from dotenv import load_dotenv
 
-# 自动加载环境变量
-load_dotenv()  # 默认加载项目根目录的.env
+# 加载环境变量
+load_dotenv()
 
-# 敏感配置分离读取
-# 安全配置中心化设定（建议写在独立配置文件 safety_config.py 中）
+# 模型配置
+MODEL_CONFIG = {
+    "default_model": "gpt-3.5-turbo",
+    "available_models": ["gpt-3.5-turbo", "gpt-4", "qwen", "deepseek"],
+    "api_base": os.getenv("API_BASE", "https://api.openai.com/v1"),
+    "api_key": os.getenv("API_KEY"),
+}
+
+# 安全配置 - 用于输入处理
 SAFETY_CONFIG = {
-    # 敏感词汇库（支持多级分类管理）
-    "sensitive_words": [
+    # 敏感词列表
+     "sensitive_words": [
         # --- 政治敏感类 ---
         "领导人名字1", "领导人名字2", "六四", "法轮功",
         # --- 违法违规类 ---
@@ -19,40 +26,79 @@ SAFETY_CONFIG = {
         # --- 暴恐血腥类 ---
         "ISIS", "人体炸弹", "斩首", "自制炸药"
     ],
+    # 指令注入防护关键词
+    injection_keywords = [
+    # 原始列表中的关键词
+    "!system",
+    "!function_call",
+    "<|FunctionCallBegin|>",
+    "<|FunctionCallEnd|>",
 
-    # 注入攻击防御正则表达式
-    "injection_patterns": [
-        # SQL 注入防御 (基础)
-        r";\s*--",                     # 注释符攻击
-        r"/\*.*?\*/",                  # SQL块注释
-        r"\b(union|select|insert|delete|drop|update|alter)\b.*?\b(sql|db|table|database)\b",
-        
-        # XSS 跨站脚本防御
-        r"<script.*?>.*?</script>",    # 基础脚本标签
-        r"javascript:",                # JS协议执行
-        r"on(error|submit|load)=",     # 事件处理器
-        
-        # 系统命令注入防御（示例）
-        r"\b(ping|wget|curl|bash|sh)\s+.*?\b(127\.0\.0\.1|localhost)\b",
-        
-        # 路径穿越攻击防御
-        r"\.\./|\.\.\\"                # 路径穿越符号
+    # SQL 注入相关
+    "UNION ALL SELECT",
+    "DROP TABLE",
+    "ALTER TABLE",
+    "TRUNCATE TABLE",
+    "INSERT INTO",
+    "UPDATE ... SET",
+    "DELETE FROM",
+
+    # 命令注入相关
+    "|",  # 管道符，用于命令拼接
+    ";",  # 分号，用于多条命令执行
+    "&&",
+    "||",
+    "`",  # 反引号，用于命令替换
+    "$(",  # 命令替换
+
+    # XSS 相关
+    "<iframe",
+    "<img src=x onerror",
+    "<body onload",
+    "<script src=",
+    "javascript:",
+    "data:text/html;base64,",
+
+    # 代码注入相关
+    "__import__",  # Python 导入模块
+    "eval(",
+    "exec(",
+    "system(",  # 可能用于执行系统命令
+    "shell_exec(",
+
+    # 其他可能的恶意关键词
+    "sudo",  # 提升权限
+    "rm -rf",  # 危险的文件删除命令
+    "wget",
+    "curl",
+    "nc",  # 网络工具
+    "ssh",
+    "python -c",  # 执行 Python 代码
+    "bash -c",  # 执行 Bash 代码
+    "powershell -Command",  # Windows PowerShell 命令执行
+]，
+    # 输入长度限制
+    "max_input_length": 2000,
+}
+
+# 工具配置
+TOOL_CONFIG = {
+    "enabled": True,
+    "available_tools": [
+        {
+            "name": "get_weather",
+            "parameters": {
+                "location": {"type": "string", "description": "城市名称，如北京"},
+                "date": {"type": "string", "description": "日期，格式YYYY-MM-DD，默认为今天"}
+            },
+            "description": "获取指定城市和日期的天气信息"
+        },
     ]
 }
 
-
-
-MODEL_CONFIG = {
-    "deepseek-ai/DeepSeek-V3": {
-        "api_key": os.getenv("OPENAI_API_KEY"),        # 从环境变量读取
-        "base_url": os.getenv("OPENAI_BASE_URL", "https://api.siliconflow.cn"),  # 带默认值
-        "stream": True
-    },
-}
-
-EXTERNAL_TOOLS = {
-    "weather_api": {
-        "url": "http://api.openweathermap.org/data/2.5/weather",
-        "key": os.getenv("WEATHER_APPID")  
-    }
-}
+# 流式输出配置
+STREAM_CONFIG = {
+    "enabled": True,
+    "chunk_size": 5,  # 每次输出的字符数
+    "delay": 0.05,    # 输出延迟(秒)
+}    

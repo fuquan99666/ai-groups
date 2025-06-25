@@ -28,13 +28,15 @@ def openai_chat_non_stream(request: ChatRequest):
         "stream": request.stream,  # 根据请求传递stream参数
         "tools": request.tools
     }
-    
-     # 流式模式处理
     if request.stream:
+        response = client.chat.completions.create(**params)
         for chunk in response:
-            yield parse_openai_chunk(chunk)  # 直接解析chunk对象
-    response = client.chat.completions.create(**params)
-    yield format_non_stream_response(response)
+            for char_msg in parse_openai_chunk(chunk):
+                yield char_msg
+    else:
+        response = client.chat.completions.create(**params)
+        yield format_non_stream_response(response)
+
 
 # 新增非流式响应适配器
 def format_non_stream_response(response) -> dict:
@@ -44,19 +46,52 @@ def format_non_stream_response(response) -> dict:
     return {
         "content": msg.content,
         "role": msg.role,
-"tool": msg.tool_calls[0] if msg.tool_calls else None
+        "tool": msg.tool_calls[0] if msg.tool_calls else None
     }
 
 # 更新chunk解析方法（兼容对象直接处理）
-def parse_openai_chunk(chunk) -> dict:
-    """直接解析 OpenAI SDK 返回的chunk对象"""
+
+def parse_openai_chunk(chunk) -> list:
+    """解析 OpenAI SDK 返回的 chunk 对象，支持内容和工具调用"""
     if not chunk.choices:
-        return None
-    delta = chunk.choices[0].delta
-    return {
-        "content": delta.content or "",
-        "role": delta.role or "assistant",
-        "finish_reason": chunk.choices[0].finish_reason,
-        "delta": delta.model_dump(),
-        "chunk": chunk.model_dump()  # 原始数据备份
-    }
+        return []
+
+    choice = chunk.choices[0]
+    delta = choice.delta
+    content = delta.content or ""
+    role = delta.role or "assistant"
+    finish_reason = choice.finish_reason
+
+    results = []
+
+    # 普通内容逐字符处理
+    for ch in content:
+        results.append({
+            "content": ch,
+            "role": role,
+            "finish_reason": finish_reason,
+            "delta": {"content": ch},
+            "chunk": chunk.model_dump()
+        })
+
+    # 工具调用部分（注意：是 delta.tool_calls）
+    if hasattr(delta, "tool_calls") and delta.tool_calls:
+        
+        for tool in delta.tool_calls:
+            
+            results.append({
+                "content": "",
+                "role": role,
+                "tool": {
+                    "id": tool.id,
+                    "name": tool.function.name,
+                    "arguments": tool.function.arguments or ""
+                },
+                "is_tool_call": True,
+                "finish_reason": finish_reason,
+                "delta": delta.model_dump(),
+                "chunk": chunk.model_dump()
+            })
+
+    return results
+

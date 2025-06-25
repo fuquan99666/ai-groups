@@ -1,6 +1,6 @@
 function.py
 search.py
-test.py
+
 weather.py
 aioperator.py
 .env
@@ -9,3 +9,5 @@ config/credentials/
 __pycache__
 *.py[cod]
 *$py.class
+private.pem
+public.pem
