@@ -4,3 +4,5 @@ pydantic
 httpx
 openai
 requests
+selenium
+beautifulsoup4

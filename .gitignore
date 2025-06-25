@@ -2,6 +2,7 @@ function.py
 search.py
 test.py
 weather.py
+aioperator.py
 .env
 *.env.local
 config/credentials/
