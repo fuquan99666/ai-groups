@@ -1,3 +1,7 @@
+import sys
+from PyQt5.QtWidgets import QApplication
+from PyQt5.QtGui import QFont
+from PyQt5.QtCore import QTimer
 import json
 from schemas import ChatRequest, ChatMessage, ToolMessage
 from core.model_api import openai_chat_non_stream
@@ -5,6 +9,7 @@ from tools.get_weather import tools, get_weather
 from test import tianqi
 import time
 from check import check_output_format as ce
+import ui
 
 stream=True
 
@@ -132,42 +137,50 @@ def handle_tool_call(reply, messages):
 
 # 主程序：支持多轮聊天
 def main():
+    app = QApplication(sys.argv)  # 创建 QApplication 实例
+    # 设置全局字体，确保中文正常显示
+    font = QFont("SimHei")
+    app.setFont(font)
+
+
+    # 初始化 UI
+    chatui = ui.ChatUI()
+    chatui.show()
+
+
     print("🤖 聊天助手已启动，输入 `exit` 退出\n")
     
     # 初始上下文（带 system prompt）
     messages = [
-ChatMessage(
-    role="system",
-    content=(
-        "你是一个智能出行助手。\n"
-        "用户会提出与天气和出行有关的问题。\n"
-        "请根据你当前知道的信息回答；如果你不知道天气，请调用天气查询工具函数再回答。\n\n"
+        ChatMessage(
+            role="system",
+            content=(
+                "你是一个智能出行助手。\n"
+                "用户会提出与天气和出行有关的问题。\n"
+                "请根据你当前知道的信息回答；如果你不知道天气，请调用天气查询工具函数再回答。\n\n"
 
-        "当你查到天气数据之后再输出时，请严格遵守以下结构：\n"
-        "- 城市（string）\n"
-        "- 天气（string）\n"
-        "- 温度范围（string，格式如“22°C ~ 30°C”）\n"
-        "- 出行建议（string）\n\n"
-        #"- content(这一项最好包含天气和出行建议做一个整合)\n\n"
+                "当你查到天气数据之后再输出时，请严格遵守以下结构：\n"
+                "- 城市（string）\n"
+                "- 天气（string）\n"
+                "- 温度范围（string，格式如“22°C ~ 30°C”）\n"
+                "- 出行建议（string）\n\n"
+                #"- content(这一项最好包含天气和出行建议做一个整合)\n\n"
 
-        "⚠️ 查到天气数据之后输出时请只输出一个 JSON 对象，不要加任何解释性语言。\n"
-        "⚠️ 不要使用 markdown 格式（如 ```json），直接输出纯 JSON。\n"
-        "⚠️ 所有字段都必须出现，不能缺省。"
-    )
-)
-
+                "⚠️ 查到天气数据之后输出时请只输出一个 JSON 对象，不要加任何解释性语言。\n"
+                "⚠️ 不要使用 markdown 格式（如 ```json），直接输出纯 JSON。\n"
+                "⚠️ 所有字段都必须出现，不能缺省。"
+            )
+        )
     ]
 
-    while True:
-        user_input = input("你：")
+    def handle_user_input(user_input):
         if user_input.strip().lower() in ["exit", "quit"]:
             print("👋 再见！")
-            break
+            app.quit()
+            return
 
-        # 添加用户消息
+        # 立即显示用户消息
         messages.append(ChatMessage(role="user", content=user_input))
-
-        # 发起请求
         request = ChatRequest(
             model="deepseek-ai/DeepSeek-V3",
             messages=messages,
@@ -175,21 +188,36 @@ ChatMessage(
             stream=stream
         )
 
+        # 获取完整回复
         reply = run_chat(request)
-
         if not reply:
             print("🤖 出现错误，请重试。")
-            continue
+            return
 
-        # 如果调用了工具
+        # 处理工具调用
         if reply.get("tool"):
             reply = handle_tool_call(reply, messages)
-            ce(reply)
         
+        full_text = reply["content"]
+        
+        # 打字机效果实现
+        current_text = ""
+        def display_next_char():
+            nonlocal current_text
+            if len(current_text) < len(full_text):
+                current_text += full_text[len(current_text)]
+                chatui.display_message("🤖", current_text)  # 注意这里使用"🤖"作为sender
+                QTimer.singleShot(50, display_next_char)  # 50毫秒显示一个字
+            else:
+                # 完成显示后添加到消息历史
+                messages.append(ChatMessage(role="assistant", content=full_text))
+        
+        # 开始显示
+        display_next_char()
+    # 连接自定义信号到槽函数
+    chatui.message_sent.connect(handle_user_input)
 
-        # 添加最终回复到消息列表中
-        messages.append(ChatMessage(role="assistant", content=reply["content"]))
-        
+    sys.exit(app.exec_())  # 进入应用程序的事件循环
 
 
 if __name__ == "__main__":
