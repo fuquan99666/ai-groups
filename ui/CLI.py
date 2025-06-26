@@ -1,3 +1,5 @@
+import queue
+
 from resources import resources
 from core.memory_manager import MemoryManager
 from core.conversation_agent import ConversationAgent
@@ -9,10 +11,25 @@ class CLIInterface:
         self.running = True
         self.memory = MemoryManager()
         self.agent = ConversationAgent(self.memory)
+        self.output_callback = None  # 输出回调函数
+        self.input_queue = queue.Queue()  # 用于接收GUI输入
+    
+    def set_output_callback(self, callback):
+        """设置输出回调函数（由MainApp注入）"""
+        self.output_callback = callback
+
+    def _print(self, text: str, sender: str = "系统", end: str = "\n"):
+        """改用回调函数输出"""
+        if self.output_callback:
+            self.output_callback(text, sender, end)
+
+    def receive_input(self, text: str):
+        """接收来自GUI的输入，放入队列"""
+        self.input_queue.put(text)
 
     def _print_banner(self):
-        print(resources.get_text("banner"))
-        print(resources.get_text("help"))
+        self._print(resources.get_text("banner"))
+        self._print(resources.get_text("help"), sender="")
 
     def _parse_command(self, input_str: str) -> tuple:
         """解析用户输入的命令和参数"""
@@ -36,7 +53,7 @@ class CLIInterface:
         elif cmd == "new":
             self.memory = MemoryManager()
             self.agent = ConversationAgent(self.memory)
-            print("🔄 已创建新对话")
+            self._print("🔄 已创建新对话，输入quit退出：")
             return "__start_conversation__"
         
         # 历史记录
@@ -62,7 +79,7 @@ class CLIInterface:
             if not convo:
                 return f"❌ 找不到对话: {args}"
             
-            print(f"✅ 已加载对话: {convo.title}")
+            self._print(f"✅ 已加载对话: {convo.title}")
             self.agent = ConversationAgent(self.memory)
             return "__start_conversation__"
         
@@ -70,12 +87,6 @@ class CLIInterface:
         elif cmd == "delete":
             if not args:
                 return "⚠️ 请指定要删除的对话ID"
-            
-            # 安全确认
-            print(f"⚠️ 即将删除对话 {args}")
-            confirm = input("确认删除？(y/N): ").lower()
-            if confirm != 'y':
-                return "❌ 取消删除"
             
             if self.memory.delete_conversation(args):
                 return f"🗑️ 已删除对话 {args}"
@@ -90,7 +101,8 @@ class CLIInterface:
 
         while self.running:
             try:
-                user_input = input("\n> ").strip()
+                user_input = self.input_queue.get().strip()  # 阻塞直到有输入
+                # user_input = input("\n> ").strip()
                 if not user_input:
                     continue
                 
@@ -100,24 +112,27 @@ class CLIInterface:
                 # 处理命令
                 cmd_result = self._handle_command(cmd, args)
                 if cmd_result == "__start_conversation__":
-                    print("输入quit退出：")
                     while self.running:
-                        msg = input("\n你: ").strip()
+                        # msg = input("\n你: ").strip()
+                        msg = self.input_queue.get().strip()
                         if not msg:
                             continue
                         if msg.lower() in ("quit", "exit"):
-                            print("👋 已退出对话模式。")
+                            self._print("👋 已退出对话模式。")
                             break
-                        self.agent.process_input(msg)
+                        self._print("", sender="AI", end="")
+                        for response in self.agent.process_input(msg):
+                            self._print(response, sender="", end="")
+                        self._print("", sender="")
                     continue
                 elif cmd_result:
-                    print(cmd_result)
+                    self._print(cmd_result)
                     continue
                 
             except KeyboardInterrupt:
-                print("\n👋 再见！")
+                self._print("\n👋 再见！")
                 self.running = False
             except Exception as e:
-                print(f"⚠️ 发生错误: {e}")
+                self._print(f"⚠️ 发生错误: {e}")
 
     

@@ -24,10 +24,13 @@ class ConversationAgent:
         )
 
         # 生成响应（这里接入LLM）
-        ai_response = self._generate_response(request)
+        reply_content = ""
+        for chunk in self._generate_response(request):
+            yield chunk
+            reply_content += chunk
         
         # 添加AI回复
-        self.memory.add_message("assistant", ai_response)
+        self.memory.add_message("assistant", chunk)
     
     def _generate_response(self, request: ChatRequest) -> str:
         """模拟AI响应生成（实际应替换为真实模型调用）"""
@@ -35,7 +38,5 @@ class ConversationAgent:
         reply_content = ""
         for chunk in openai_chat_non_stream(request):
             content_piece = chunk["content"]
-            print(content_piece, end="", flush=True)
-            reply_content += content_piece
-        return reply_content
-    
+            yield content_piece
+        
