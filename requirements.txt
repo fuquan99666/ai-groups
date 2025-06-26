@@ -6,3 +6,6 @@ openai
 requests
 selenium
 beautifulsoup4
+cryptography
+jsonschema
+PyQt5

@@ -7,10 +7,11 @@ load_dotenv()
 
 # 模型配置
 MODEL_CONFIG = {
-    "default_model": "gpt-3.5-turbo",
-    "available_models": ["gpt-3.5-turbo", "gpt-4", "qwen", "deepseek"],
-    "api_base": os.getenv("API_BASE", "https://api.openai.com/v1"),
-    "api_key": os.getenv("API_KEY"),
+    "deepseek-ai/DeepSeek-V3": {
+        "api_key": os.getenv("OPENAI_API_KEY"),        # 从环境变量读取
+        "base_url": os.getenv("OPENAI_BASE_URL", "https://api.siliconflow.cn"),  # 带默认值
+        "stream": True
+    },
 }
 
 # 安全配置 - 用于输入处理
@@ -27,7 +28,7 @@ SAFETY_CONFIG = {
         "ISIS", "人体炸弹", "斩首", "自制炸药"
     ],
     # 指令注入防护关键词
-    injection_keywords = [
+    "injection_keywords": [
     # 原始列表中的关键词
     "!system",
     "!function_call",
@@ -76,7 +77,7 @@ SAFETY_CONFIG = {
     "python -c",  # 执行 Python 代码
     "bash -c",  # 执行 Bash 代码
     "powershell -Command",  # Windows PowerShell 命令执行
-]，
+],
     # 输入长度限制
     "max_input_length": 2000,
 }
@@ -102,3 +103,14 @@ STREAM_CONFIG = {
     "chunk_size": 5,  # 每次输出的字符数
     "delay": 0.05,    # 输出延迟(秒)
 }    
+
+EXTERNAL_TOOLS = {
+    "weather_api": {
+        "BASE_URL" :os.getenv("BASE_URL"),
+        "CITY_URL" :os.getenv("CITY_URL"),
+        "key": os.getenv("WEATHER_API_KEY")  ,
+        "COUNTER_KEY": os.getenv("COUNTER_KEY"),
+        "PROVE_KEY" :os.getenv("PROVE_KEY"),
+        "PRIVATE_KEY_PATH" :"private.pem",
+    }
+}

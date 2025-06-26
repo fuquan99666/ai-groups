@@ -5,6 +5,9 @@ class ChatMessage(BaseModel):
     role: str  # "user" or "assistant"
     content: str
 
+    def model_dump(self):
+        return {"role": self.role, "content": self.content}
+
 class ToolMessage(ChatMessage):
     tool_call_id: str
 
@@ -43,3 +46,25 @@ class Tool(BaseModel):
     """工具元数据规范"""
     type: str = "function"
     function: FunctionDefinition
+
+class IOInterface:
+    """输入输出接口抽象类"""
+    @classmethod
+    def input(cls, prompt: str = "") -> str:
+        """获取用户输入的抽象方法"""
+        raise NotImplementedError
+    
+    @classmethod
+    def output(cls, message: str) -> None:
+        """输出内容的抽象方法"""
+        raise NotImplementedError
+
+class StandardIO(IOInterface):
+    """标准控制台输入输出"""
+    @classmethod
+    def input(cls, prompt: str = "") -> str:
+        return input(prompt)
+    
+    @classmethod
+    def output(cls, message: str) -> None:
+        print(message)

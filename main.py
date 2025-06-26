@@ -65,8 +65,6 @@ def run_chat(request: ChatRequest):
         print("❌ 出错了：", e)
         return None
 
-
-
 # 如果模型调用工具，处理工具函数
 def handle_tool_call(reply, messages):
     if not stream:
