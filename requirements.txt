@@ -9,3 +9,4 @@ beautifulsoup4
 cryptography
 jsonschema
 PyQt5
+pyppeteer

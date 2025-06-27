@@ -10,7 +10,7 @@ from schemas import ChatRequest, ChatMessage, ToolMessage
 class Conversation:
     id: str
     title: str
-    messages: List[ChatMessage]
+    messages: List[ToolMessage]
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now().isoformat())
 
@@ -46,6 +46,15 @@ class MemoryManager:
         self.current_conversation.updated_at = datetime.now().isoformat()
         self.save_conversation()
     
+    def add_tool_message(self, role: str, content: str, tool_id: str):
+        """添加消息到当前对话"""
+        if self.current_conversation is None:
+            self.start_new_conversation(content)
+        
+        self.current_conversation.messages.append(ToolMessage(role=role, content=content, tool_call_id=tool_id))
+        self.current_conversation.updated_at = datetime.now().isoformat()
+        self.save_conversation()
+
     def save_conversation(self):
         """持久化当前对话"""
         if self.current_conversation:

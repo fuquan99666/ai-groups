@@ -1,6 +1,10 @@
 
 # （多模态）大语言模型应用开发
 
+## TODO :
+- [] ui界面实现markdown, python等代码块
+- [] ui切换历史对话
+
 ## 项目概述
 本系统采用模块化设计实现多模型对话服务，核心功能包含：
 - 多模型 API 流式响应
@@ -28,9 +32,6 @@
 ### 核心层问题
 #### `core/model_api.py`
 ```python
-# 问题：异步流输出还没验证正确性，目前仍为同步版本
-def openai_chat_non_stream(request: ChatRequest):
-
 # 问题：希望输出能为固定格式ChatMessage
 def format_non_stream_response(response) -> dict:
 ```   

@@ -28,15 +28,6 @@ class MainApp:
         # ChatUI输入 -> CLI（通过信号）
         self.chat_ui.message_sent.connect(self.cli.receive_input)
     
-    # def _handle_message_sent_command(self, message: str):
-    #     """处理来自ChatUI的发送命令"""
-    #     if command.lower() == "exit":
-    #         self.cli._print("👋 再见！", "系统")
-    #         self.app.quit()
-    #     else:
-    #         # 模拟CLI处理命令
-    #         self.cli._handle_command(*self.cli._parse_command(command))
-    
     def run(self):
         """启动应用"""
         self.chat_ui.show()
@@ -47,6 +38,7 @@ class MainApp:
         cli_thread.start()
         
         sys.exit(self.app.exec_())
+        
 if __name__ == '__main__':
     MainApp().run()
         

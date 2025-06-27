@@ -5,8 +5,8 @@ from openai import OpenAI
 from schemas import ChatMessage, ChatRequest
 from config import MODEL_CONFIG
 
-# 同步版本
-def openai_chat_non_stream(request: ChatRequest):
+# 流式版本
+def openai_chat_stream(request: ChatRequest):
 
     model_config = MODEL_CONFIG.get(request.model)
     if not model_config:
@@ -35,8 +35,7 @@ def openai_chat_non_stream(request: ChatRequest):
                 yield char_msg
     else:
         response = client.chat.completions.create(**params)
-        yield format_non_stream_response(response)
-
+        return response
 
 # 新增非流式响应适配器
 def format_non_stream_response(response) -> dict:
