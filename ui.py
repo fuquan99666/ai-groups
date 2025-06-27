@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QFont
 from PyQt5.QtGui import QTextCursor
+import markdown
 
 class ChatUI(QMainWindow):
     message_sent = pyqtSignal(str)
@@ -56,11 +57,14 @@ class ChatUI(QMainWindow):
         """在聊天窗口中显示消息"""
         cursor = self.chat_display.textCursor()
         
+        # 将Markdown转换为HTML
+        html_message = markdown.markdown(message)
+        
         if sender == "系统":
-            self.chat_display.append(f"<b><font color='#888888'>🤖:</font></b> {message}")
+            self.chat_display.append(f"<b><font color='#888888'>🤖:</font></b> {html_message}")
         elif sender == "你":
             # 用户消息直接追加，不做特殊处理
-            self.chat_display.append(f"<b><font color='#008000'>你:</font></b> {message}")
+            self.chat_display.append(f"<b><font color='#008000'>你:</font></b> {html_message}")
         else:
             # 只对AI回复使用打字机效果
             if "🤖:" in self.chat_display.toPlainText():
@@ -71,7 +75,7 @@ class ChatUI(QMainWindow):
                 cursor.deletePreviousChar()  # 删除换行符
             
             # 添加更新后的AI回复
-            self.chat_display.append(f"<b><font color='#0000FF'>🤖:</font></b> {message}")
+            self.chat_display.append(f"<b><font color='#0000FF'>🤖:</font></b> {html_message}")
         
         # 自动滚动到底部
         self.chat_display.verticalScrollBar().setValue(
