@@ -114,3 +114,6 @@ EXTERNAL_TOOLS = {
         "PRIVATE_KEY_PATH" :"private.pem",
     }
 }
+
+# chromedrive path
+CHROME_PATH = os.getenv("path_chromedriver")

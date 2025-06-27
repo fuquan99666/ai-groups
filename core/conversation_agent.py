@@ -50,14 +50,13 @@ class ConversationAgent:
         if use_tool:
             if isinstance(tool_args, str):
                 try:
-                    json_str = re.sub(r"^```json\s*|\s*```$", "", tool_args.strip())
+                    json_str = re.sub(r'^```(json)?|```$', '', tool_args, flags=re.IGNORECASE | re.MULTILINE)
                     tool_args = json.loads(json_str)
                 except Exception:
                     yield f"\n[TOOL ARGS ERROR:{tool_args}]"
             # 工具执行
             try:
                 tool_result = tool_manager.execute(tool_name, tool_args)
-
                 if tool_result is not None:
                     self.memory.add_tool_message("tool", tool_result, tool_id)
                 # 构造新的请求，包含工具结果

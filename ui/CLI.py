@@ -121,6 +121,7 @@ class CLIInterface:
                             self._print("👋 已退出对话模式。")
                             break
                         self._print("", sender="AI", end="")
+
                         for response in self.agent.process_input(msg):
                             self._print(response, sender="", end="")
                         self._print("", sender="")

@@ -2,6 +2,7 @@ from openai import OpenAI
 from typing import Dict, Any, Callable
 from tools.python_execute import PythonExecutor
 from tools.get_weather import get_weather_func
+from tools.pku_course import fetch_pku_course_updates
 
 class ToolManager:
     def __init__(self):
@@ -70,7 +71,19 @@ def get_weather(location: str) -> str:
         "code": {"type": "string", "description": "要执行的Python代码"}
     }
 )
-def python_execute_tool(code: str) -> str:
+def python_execute(code: str) -> str:
     import asyncio
     executor = PythonExecutor()
     return asyncio.run(executor.execute(code))
+
+@tool_manager.register(
+    name="pku_course",
+    description="获取北京大学选课系统的课程更新信息，包括作业DDL、公告等。需要提供用户名和密码。",
+    parameters={
+    }
+)
+def pku_course() -> str:
+    """
+    查询北大选课系统的课程更新（如DDL、公告等）。
+    """
+    return fetch_pku_course_updates()
