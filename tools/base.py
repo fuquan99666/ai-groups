@@ -1,6 +1,7 @@
 from openai import OpenAI
 from typing import Dict, Any, Callable
 from tools.python_execute import PythonExecutor
+from tools.get_weather import get_weather_func
 
 class ToolManager:
     def __init__(self):
@@ -53,15 +54,15 @@ def calculate(expression: str) -> float:
 # 2. 注册天气查询工具（模拟实现）
 @tool_manager.register(
     name="get_weather",
-    description="Get current weather for a location",
+    description="Get current weather for a location (专业天气查询)",
     parameters={
         "location": {"type": "string", "description": "City name like 'Hangzhou'"}
     }
 )
 def get_weather(location: str) -> str:
-    return f"Weather in {location}: Sunny, 25°C"
+    return get_weather_func(location)
 
-# 注册python代码执行工具
+# 3. 注册python代码执行工具
 @tool_manager.register(
     name="python_execute",
     description="安全执行简单的Python代码，仅支持基础数学和部分内置函数",
