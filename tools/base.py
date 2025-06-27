@@ -1,5 +1,6 @@
 from openai import OpenAI
 from typing import Dict, Any, Callable
+from tools.python_execute import PythonExecutor
 
 class ToolManager:
     def __init__(self):
@@ -59,3 +60,16 @@ def calculate(expression: str) -> float:
 )
 def get_weather(location: str) -> str:
     return f"Weather in {location}: Sunny, 25°C"
+
+# 注册python代码执行工具
+@tool_manager.register(
+    name="python_execute",
+    description="安全执行简单的Python代码，仅支持基础数学和部分内置函数",
+    parameters={
+        "code": {"type": "string", "description": "要执行的Python代码"}
+    }
+)
+def python_execute_tool(code: str) -> str:
+    import asyncio
+    executor = PythonExecutor()
+    return asyncio.run(executor.execute(code))

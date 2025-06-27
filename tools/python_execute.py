@@ -57,9 +57,3 @@ class PythonExecutor:
             return output.getvalue()
         except Exception as e:
             return f"EXECUTION ERROR: {type(e).__name__} - {str(e)}"
-
-# 使用示例
-import asyncio
-executor = PythonExecutor()
-print(asyncio.run(executor.execute("print(math.sqrt(16))")))  # 输出4.0
-print(asyncio.run(executor.execute("print(abs(-7) + max(3, 5))")))  # 输出12

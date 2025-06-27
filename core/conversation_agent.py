@@ -60,8 +60,6 @@ class ConversationAgent:
 
                 if tool_result is not None:
                     self.memory.add_tool_message("tool", tool_result, tool_id)
-                print(tool_result)
-                print(tool_id)
                 # 构造新的请求，包含工具结果
                 new_request = ChatRequest(
                     model="deepseek-ai/DeepSeek-V3",
